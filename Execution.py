@@ -5,7 +5,7 @@ from test import ColorGridDetector
 
 def main():
     detector = ColorGridDetector(grid_size=(5, 5))
-    image_path = "examples/IMG_5931.PNG"
+    image_path = "examples/IMG_5927.PNG"
 
     color_positions = detector.detect_colors(image_path)
 
