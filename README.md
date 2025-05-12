@@ -1,5 +1,7 @@
-Flow Free is a free game of the iOS app store.
+Flow Free is a free game on the iOS app store.
+
 Project is fully working and tested with 5x5 grid.
+
 Used a backtracking algorithm to find optimal paths, used OpenCV library for image processing and tkinter for GUI.
 
 TODO:
