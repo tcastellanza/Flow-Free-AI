@@ -92,6 +92,48 @@ class ColorGridDetector:
 
         return color_positions
 
+    def detect_unscaled_colors(self, image_path):
+        """
+        Detects colored circles in an image and returns their unscaled pixel coordinates.
+
+        Args:
+            image_path (str): Path to the image.
+
+        Returns:
+            dict: {'color': [(x, y), ...]} — pixel coordinates of each detected colored blob.
+        """
+        img = cv2.imread(image_path)
+        if img is None:
+            print(f"Error: Could not open or find the image at {image_path}")
+            return {}
+
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        color_coords = {color: [] for color in self.color_ranges}
+
+        for color, ranges in self.color_ranges.items():
+            for lower_hsv, upper_hsv in ranges:
+                lower_bound = np.array(lower_hsv, dtype=np.uint8)
+                upper_bound = np.array(upper_hsv, dtype=np.uint8)
+                mask = cv2.inRange(hsv, lower_bound, upper_bound)
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                for contour in contours:
+                    area = cv2.contourArea(contour)
+                    if area > self.min_blob_area:
+                        x, y, w, h = cv2.boundingRect(contour)
+                        aspect_ratio = float(w) / h if h > 0 else 0
+                        if aspect_ratio > self.aspect_ratio_threshold and aspect_ratio < (1 / self.aspect_ratio_threshold):
+                            # Compute centroid (unscaled)
+                            M = cv2.moments(contour)
+                            if M["m00"] != 0:
+                                cX = int(M["m10"] / M["m00"])
+                                cY = int(M["m01"] / M["m00"])
+                                color_coords[color].append((cX, cY))
+
+        return color_coords
+    
+
+
 if __name__ == "__main__":
     detector = ColorGridDetector(grid_size=(5, 5))
     image_file = "/Users/tommasocastellanza/Downloads/IMG_5929.PNG"

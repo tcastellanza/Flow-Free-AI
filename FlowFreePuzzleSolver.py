@@ -83,6 +83,7 @@ if __name__ == "__main__":
     if solver.solve():
         print("✅ Solution found:")
         solver.print_grid()
+        print(solver.grid[1][0])
     else:
         print("❌ No solution found.")
 
