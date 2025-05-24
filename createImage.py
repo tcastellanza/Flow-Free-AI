@@ -75,47 +75,39 @@ def get_valid_start(grid, scaled_positions, colour):
 
 def draw_lines(image, unscaledColorPositions, scaledColourPositions, solver, colour):
     size = calculate_square_size()
-    
-    # Find valid start with swapped coordinates
-    start_grid_pos = get_valid_start(solver.grid, scaledColourPositions, colour)
+    grid = solver.grid
+    visited = set()
+
+    start_grid_pos = get_valid_start(grid, scaledColourPositions, colour)
     if not start_grid_pos:
         print(f"No valid direction found for {colour}")
         return image
-    
-    start_unscaled_pos = unscaledColorPositions[colour][0]  # pixel coordinates (x, y)
 
     x_grid, y_grid = start_grid_pos
+    x_unscaled, y_unscaled = unscaledColorPositions[colour][0]
+    current_pixel = (x_unscaled, y_unscaled)
 
+    # Move through the path step by step
+    stack = [(x_grid, y_grid, current_pixel)]
 
-    direction = find_direction(solver.grid, x_grid, y_grid, colour)
-    if not direction:
-        print(f"No valid direction found for {colour}")
-        return image
+    while stack:
+        x, y, pixel_pos = stack.pop()
+        visited.add((x, y))
+        
+        #Checks all 4 directions: up, down, left, right.        
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < len(grid[0]) and 0 <= ny < len(grid):
+                if (nx, ny) not in visited and grid[ny][nx] == colour:
+                    # Calculate the next pixel position
+                    next_pixel = (pixel_pos[0] + dx * size, pixel_pos[1] + dy * size)
 
-    # calculate end point based on direction
-    x, y = start_unscaled_pos
-    if direction == 'up':
-        end_point = (x, y - size)
-    elif direction == 'down':
-        end_point = (x, y + size)
-    elif direction == 'left':
-        end_point = (x - size, y)
-    elif direction == 'right':
-        end_point = (x + size, y)
+                    # Draw the line segment
+                    image = cv2.line(image, pixel_pos, next_pixel, colorPicker(colour), thickness=40)
 
-    # draw the line
-    line_color = colorPicker(colour)
-    thickness = 40
-    image = cv2.line(image, start_unscaled_pos, end_point, line_color, thickness)
-
-    print(f"Checking {colour} at grid position {start_grid_pos}")
-    print(f"Value in solver.grid at that position: {solver.grid[y_grid][x_grid]}")
-
-    print(f"Checking directions for {colour} at {start_grid_pos}")
-    for dy, dx, dir in [(-1, 0, 'up'), (1, 0, 'down'), (0, -1, 'left'), (0, 1, 'right')]:
-        ny, nx = y_grid + dy, x_grid + dx
-        if 0 <= ny < len(solver.grid) and 0 <= nx < len(solver.grid[0]):
-            print(f"Checking {dir} → ({nx}, {ny}): {solver.grid[ny][nx]}")    
+                    # Add next step to stack
+                    stack.append((nx, ny, next_pixel))
+                    break  # move one step at a time like DFS
 
     return image
 

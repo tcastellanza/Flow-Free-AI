@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import cv2
 from FlowFreePuzzleSolver import FlowFreeSolver
 from test import ColorGridDetector
-
+from createImage import draw_lines
 import io
 import sys
 
